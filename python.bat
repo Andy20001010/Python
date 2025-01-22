@@ -1,7 +1,7 @@
 @echo off
 :: Simplified Python Setup Script (No Administrator Required)
 :: Define variables
-set PYTHON_VERSION=3.12.8
+set PYTHON_VERSION=3.13.1
 set PYTHON_INSTALLER=python-%PYTHON_VERSION%-amd64.exe
 set DOWNLOAD_URL=https://www.python.org/ftp/python/%PYTHON_VERSION%/%PYTHON_INSTALLER%
 set INSTALL_PATH=%USERPROFILE%\Python%PYTHON_VERSION%
