@@ -4,15 +4,17 @@
 
 ## **操作流程**
 1. **下載環境**
-   - Python環境：`python.bat`。
+   - Python環境：`python.bat`該檔案會到Python官網下載`3.13.1`版Python，並加入到使用者環境中
 
 2. **選取工具資料夾**
    - 選擇需要使用的工具資料夾，並下載工具的`.py`跟`.txt`檔案(範例:`test.py` & `test.txt`)
+   - `.py`檔為主程式
+   - `.txt`檔為套件版本
 
 3. **使用辦法**
    1. 打開cmd並前往檔案路徑
-   2. 在cmd輸入`pip install -r test.txt`下載程式所需套件
-   3. 左鍵點選兩下`test.py`即可執行程式
+   2. 在cmd輸入`pip install -r test.txt`下載程式所需套件(`test`請替換成目標檔案)
+   3. 左鍵點選兩下`test.py`即可執行程式(`test`請替換成目標檔案)
 
 ## **疑難排解**
 
