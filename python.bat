@@ -1,31 +1,71 @@
 @echo off
-REM 設定最新 Python 下載網址
-set PYTHON_URL=https://www.python.org/ftp/python/3.12.1/python-3.12.1-amd64.exe
-set PYTHON_INSTALLER_PATH=%TEMP%\python-3.12.1-amd64.exe
+:: 設置 Python 環境建置批次檔案
 
-REM 從網路下載最新的 Python
-echo Downloading Python...
-curl -L -o "%PYTHON_INSTALLER_PATH%" "%PYTHON_URL%" >nul 2>&1
-if exist "%PYTHON_INSTALLER_PATH%" (
-    echo Python Download success
-) else (
-    echo Python Download failed
-    exit /b 1
+:: 定義變數
+set PYTHON_VERSION=3.11.6
+set PYTHON_INSTALLER=python-%PYTHON_VERSION%-amd64.exe
+set DOWNLOAD_URL=https://www.python.org/ftp/python/%PYTHON_VERSION%/%PYTHON_INSTALLER%
+set INSTALL_PATH=C:\Python%PYTHON_VERSION%
+set VENV_NAME=venv
+
+:: 檢查 Python 是否已安裝
+python --version >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Python is not installed. Downloading Python %PYTHON_VERSION%...
+    
+    :: 下載 Python 安裝檔案
+    curl -o %PYTHON_INSTALLER% %DOWNLOAD_URL%
+    if %ERRORLEVEL% neq 0 (
+        echo Failed to download Python installer. Please check your internet connection.
+        pause
+        exit /b
+    )
+    
+    :: 安裝 Python
+    echo Installing Python...
+    start /wait %PYTHON_INSTALLER% /quiet InstallAllUsers=1 PrependPath=1 TargetDir=%INSTALL_PATH%
+    if %ERRORLEVEL% neq 0 (
+        echo Python installation failed.
+        pause
+        exit /b
+    )
+    echo Python installed successfully.
 )
 
-REM 安裝 Python
-echo Installing Python...
-"%PYTHON_INSTALLER_PATH%" /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
-
-REM 檢查 Python 安裝是否成功
-where python >nul 2>&1
-if %ERRORLEVEL%==0 (
-    echo Python Install success
-    python --version
-) else (
-    echo Python Install failed
-    exit /b 1
+:: 檢查 Python 是否正確安裝
+python --version >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Python installation was not successful. Please check manually.
+    pause
+    exit /b
 )
 
-echo Installation complete. Please restart CMD!
+:: 設置環境變數（如果需要手動添加）
+echo Adding Python to PATH...
+setx PATH "%INSTALL_PATH%;%INSTALL_PATH%\Scripts;%PATH%" /M
+
+:: 創建並啟用虛擬環境
+if not exist %VENV_NAME% (
+    echo Creating virtual environment...
+    python -m venv %VENV_NAME%
+)
+
+echo Activating virtual environment...
+call %VENV_NAME%\Scripts\activate
+
+:: 確保 pip 已更新
+echo Upgrading pip...
+python -m pip install --upgrade pip
+
+:: 安裝必要套件
+echo Installing required packages...
+pip install numpy pandas matplotlib
+
+:: 清理下載的安裝檔案
+if exist %PYTHON_INSTALLER% (
+    del /f %PYTHON_INSTALLER%
+)
+
+:: 顯示完成訊息
+echo Python environment setup is complete.
 pause
