@@ -1,5 +1,5 @@
 import pandas as pd
-from tkinter import filedialog
+from tkinter import filedialog, ttk
 import tkinter as tk
 
 # Function 1: Host and Risk type analysis, with proper 'None' handling
@@ -80,33 +80,63 @@ def count_risk_levels(df, writer):
 
 # Main function to handle Excel writing and call the functions
 def run_analysis_and_filter():
-    file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
-    if file_path:
+    root = tk.Tk()
+    root.attributes('-topmost', True)  # 將視窗置頂
+    root.title("選擇檔案與測試類型")
+    root.geometry("400x300")
+
+    # 檔案選擇
+    file_path_var = tk.StringVar()
+
+    def select_file():
+        file_path = filedialog.askopenfilename(filetypes=[("CSV Files", "*.csv")])
+        file_path_var.set(file_path)
+
+    file_label = tk.Label(root, text="請選擇檔案：")
+    file_label.pack(pady=10)
+
+    file_button = tk.Button(root, text="選擇檔案", command=select_file)
+    file_button.pack(pady=5)
+
+    file_path_display = tk.Label(root, textvariable=file_path_var, wraplength=350, fg="blue")
+    file_path_display.pack(pady=5)
+
+    # 測試類型選擇
+    test_type_var = tk.StringVar(value="初測")
+
+    test_label = tk.Label(root, text="請選擇測試類型：")
+    test_label.pack(pady=10)
+
+    test_type_options = ["初測", "複測"]
+    for option in test_type_options:
+        rb = tk.Radiobutton(root, text=option, variable=test_type_var, value=option)
+        rb.pack(anchor="w", padx=20)
+
+    def confirm_and_process():
+        file_path = file_path_var.get()
+        if not file_path:
+            tk.messagebox.showerror("錯誤", "請選擇檔案！")
+            return
+
+        test_type = test_type_var.get()
+        save_path = f"合併結果_{test_type}.xlsx"
+        separate_risk_file_path = f"弱點列表_{test_type}.xlsx"
+
         df = pd.read_csv(file_path)
-        save_path = "合併結果.xlsx"
-        separate_risk_file_path = "弱點列表.xlsx"
 
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
             analyze_risk_by_host(df, writer)
             filter_risk_above_low(df, writer, separate_file_path=separate_risk_file_path)
             extract_vertical_risk_data_with_spacing(df, writer)
             count_risk_levels(df, writer)
-        
+
         print(f"Results saved to {save_path}")
         print(f"Filtered risk list saved to {separate_risk_file_path}")
-    else:
-        print("File selection canceled.")
-    
-    # Close the Tkinter window after processing
-    root.destroy()
+        root.destroy()
 
-# Initialize the Tkinter window
-root = tk.Tk()
-root.title("CSV Analyzer and Filter")
+    confirm_button = tk.Button(root, text="確認並執行", command=confirm_and_process, bg="lightgreen")
+    confirm_button.pack(pady=20)
 
-# Create a button to start the process
-open_button = tk.Button(root, text="選擇檔案", command=run_analysis_and_filter)
-open_button.pack(pady=20)
+    root.mainloop()
 
-# Run the Tkinter event loop
-root.mainloop()
+run_analysis_and_filter()
