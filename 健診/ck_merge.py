@@ -36,15 +36,32 @@ def filter_risk_above_low(df, writer):
     result_df_filter.to_excel(writer, sheet_name='弱點列表', index=False)
 
 # Function 3: Extract Risk >= Low data, remove duplicate ids, and format horizontally
-def extract_horizontal_risk_data(df, writer):
+def extract_vertical_risk_data_with_spacing(df, writer):
     risk_levels = ['Low', 'Medium', 'High', 'Critical']
+    # 去除重複的 Plugin ID
     df_unique = df.drop_duplicates(subset=['Plugin ID'])
+    # 篩選 Risk 欄位符合風險等級的資料
     filtered_df = df_unique[df_unique['Risk'].isin(risk_levels)]
+    # 設定風險等級的順序
     filtered_df['Risk'] = pd.Categorical(filtered_df['Risk'], categories=risk_levels, ordered=True)
+    # 根據風險等級排序，從高到低
     filtered_df = filtered_df.sort_values('Risk', ascending=False)
-    result_df_horizontal = filtered_df[['Risk', 'Name', 'CVE', 'Plugin ID', 'Description', 'Solution', 'See Also']]
-    result_df_transposed = result_df_horizontal.transpose()
-    result_df_transposed.to_excel(writer, sheet_name='弱點說明表格', header=False)
+    
+    # 準備所需欄位
+    columns = ['Risk', 'Name', 'CVE', 'Plugin ID', 'Description', 'Solution', 'See Also']
+    result = []
+
+    # 組織數據為直式格式，並在每個弱點之間加入空白行
+    for _, row in filtered_df.iterrows():
+        for col in columns:
+            result.append([col, row[col]])  # 每個欄位作為直式顯示
+        result.append(['', ''])  # 插入空白行
+
+    # 轉換為 DataFrame
+    result_df_vertical = pd.DataFrame(result, columns=['Field', 'Value'])
+
+    # 將結果寫入 Excel
+    result_df_vertical.to_excel(writer, sheet_name='弱點說明表格', index=False, header=False)
 
 # Function 4: Count occurrences of each risk level from previous data, remove duplicate IDs
 def count_risk_levels(df, writer):
@@ -64,7 +81,7 @@ def run_analysis_and_filter():
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
             analyze_risk_by_host(df, writer)
             filter_risk_above_low(df, writer)
-            extract_horizontal_risk_data(df, writer)
+            extract_vertical_risk_data_with_spacing(df, writer)
             count_risk_levels(df, writer)
         
         print(f"Results saved to {save_path}")
