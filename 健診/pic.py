@@ -22,8 +22,16 @@ def save_risk_counts_chart(file_path):
     # 計算每個 Host 的風險等級次數
     risk_counts = df[df['Risk'].isin(['Medium', 'High', 'Critical'])].groupby(['Host', 'Risk']).size().unstack(fill_value=0)
 
-    # 繪製柱狀圖
-    ax = risk_counts.plot(kind='bar', figsize=(10, 6), stacked=True)
+    # 定義顏色對應
+    color_map = {
+        'Medium': 'yellow',
+        'High': 'red',
+        'Critical': 'darkred'
+    }
+
+    # 繪製並排柱狀圖
+    ax = risk_counts.plot(kind='bar', figsize=(10, 6), color=[color_map[risk] for risk in risk_counts.columns], width=0.8)
+
     plt.title('Risk Counts per Host')
     plt.xlabel('Host')
     plt.ylabel('Count')
