@@ -26,16 +26,23 @@ def analyze_risk_by_host(df, writer):
     result_df_analysis.to_excel(writer, sheet_name='風險數量列表', index=False)
 
 # Function 2: Filter Risk >= Low, with proper sorting
-def filter_risk_above_low(df, writer):
+def filter_risk_above_low(df, writer, separate_file_path=None):
     risk_levels = ['Low', 'Medium', 'High', 'Critical']
     df_unique_by_host_and_plugin = df.drop_duplicates(subset=['Host', 'Plugin ID'])
     filtered_df = df_unique_by_host_and_plugin[df_unique_by_host_and_plugin['Risk'].isin(risk_levels)]
     result_df_filter = filtered_df[['Plugin ID', 'Risk', 'Host', 'Name']]
     result_df_filter['Risk'] = pd.Categorical(result_df_filter['Risk'], categories=risk_levels, ordered=True)
     result_df_filter = result_df_filter.sort_values('Risk', ascending=False)
+
+    # 寫入主 Excel
     result_df_filter.to_excel(writer, sheet_name='弱點列表', index=False)
 
-# Function 3: Extract Risk >= Low data, remove duplicate ids, and format horizontally
+    # 如果需要單獨輸出該結果的 Excel
+    if separate_file_path:
+        with pd.ExcelWriter(separate_file_path, engine='xlsxwriter') as separate_writer:
+            result_df_filter.to_excel(separate_writer, sheet_name='弱點列表', index=False)
+
+# Function 3: Extract Risk >= Low data, remove duplicate ids, and format vertically with spacing
 def extract_vertical_risk_data_with_spacing(df, writer):
     risk_levels = ['Low', 'Medium', 'High', 'Critical']
     # 去除重複的 Plugin ID
@@ -77,14 +84,16 @@ def run_analysis_and_filter():
     if file_path:
         df = pd.read_csv(file_path)
         save_path = "合併結果.xlsx"
+        separate_risk_file_path = "弱點列表.xlsx"
 
         with pd.ExcelWriter(save_path, engine='xlsxwriter') as writer:
             analyze_risk_by_host(df, writer)
-            filter_risk_above_low(df, writer)
+            filter_risk_above_low(df, writer, separate_file_path=separate_risk_file_path)
             extract_vertical_risk_data_with_spacing(df, writer)
             count_risk_levels(df, writer)
         
         print(f"Results saved to {save_path}")
+        print(f"Filtered risk list saved to {separate_risk_file_path}")
     else:
         print("File selection canceled.")
     
