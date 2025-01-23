@@ -24,9 +24,9 @@ def save_risk_counts_chart(file_path):
 
     # 定義顏色對應
     color_map = {
-        'Medium': 'yellow',
-        'High': 'red',
-        'Critical': 'darkred'
+        'Medium': '#FFD700',  # 黃色
+        'High': '#FF4500',    # 紅色
+        'Critical': '#8B0000' # 深紅色
     }
 
     # 繪製並排柱狀圖
